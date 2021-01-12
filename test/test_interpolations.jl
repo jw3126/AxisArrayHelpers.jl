@@ -6,6 +6,8 @@ import AxisKeys
 const AK = AxisKeys
 import Interpolations
 const ITP = Interpolations
+using AxisArrayConversion
+const AC = AxisArrayConversion
 
 
 @testset "create_interpolate" begin
@@ -40,6 +42,15 @@ const ITP = Interpolations
     itp = @inferred create_interpolate(data, scheme=ITP.Gridded(ITP.Constant()))
     @test itp(-1.4) === 1.0
     @test itp(1.9) === 10.0
+end
+
+@testset "pullback" begin
+    data = (axes=(1:3,), values=[2,0,10])
+    pb = pullback(identity, (x=1:3,), data)
+    AC.check_consistency(pb)
+    @test pb.axes === (x=1:3,)
+    @test pb.values == data.values
+
 end
 
 end#module

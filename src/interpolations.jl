@@ -3,8 +3,10 @@ const ITP = Interpolations
 
 using ConstructionBase: setproperties
 using StaticArrays
-export create_interpolate
 using AxisArrayConversion: to
+
+export create_interpolate
+export pullback
 
 struct DefaultOnOutside end
 
@@ -30,33 +32,35 @@ end
 function pullback(f, axes, data; kw...)
     AC.check_consistency(data)
     arr    = AC.to(NamedTuple, data)
-    axs    = AC.names_axes(axes)
+    axs    = AC.name_axes(axes)
     nt_out = _pullback_namedtuple(f, axes, data; kw...)
     T      = AC.roottype(typeof(data))
     out    = AC.to(T, nt_out)
     return out
 end
 
-function _pullback_namedtuple(f, axes::NamedTuple, arr::NamedTuple; kw...)
-    dims = map(length, axes)
-    vals = similar(data.values, dims)
-    out = setproperties(data, (axes=axes, values=vals))
-    return _pullback_namedtuple!(f, out, arr; kw...)
+function _pullback_namedtuple(f, axes::NamedTuple, data::NamedTuple; kw...)
+    dims = map(length, Tuple(axes))
+    T = float(eltype(data.values))
+    vals = similar(data.values, T, dims)
+    out  = (axes=axes, values=vals)
+    return _pullback_namedtuple!(f, out, data; kw...)
 end
 
 function pullback!(f, out, data; kw...)
     AC.check_consistency(out)
     AC.check_consistency(data)
-    out_nt =AC.to(NamedTuple, out)
+    out_nt  = AC.to(NamedTuple, out)
     data_nt = AC.to(NamedTuple, data)
     _pullback_namedtuple!(f, nt_out, data_nt; kw...)
-    return AC.to(AC.roottype(out), out_nt)
+    T = AC.roottype(out)
+    return AC.to(T, out_nt)
 end
 
-function _pullback_namedtuple!(f, out::NamedTuple, arr::NamedTuple; onoutside, kw...)
-    itp = create_interpolate(data, onoutside; kw...)
+function _pullback_namedtuple!(f, out::NamedTuple, data::NamedTuple; kw...)
+    itp = create_interpolate(data; kw...)
     Threads.@threads for ci in CartesianIndices(out.values)
-        pt0 = SVector(map(getindex, out.axes, Tuple(ci)))
+        pt0 = SVector(map(getindex, Tuple(out.axes), Tuple(ci)))
         pt = f(pt0)
         out.values[ci] = apply_interpolate(itp, pt)
     end
@@ -75,4 +79,11 @@ end
 function apply_interpolate(f, pt::SVector{3})
     x,y,z = pt
     f(x,y,z)
+end
+function apply_interpolate(f, pt::SVector{4})
+    w,x,y,z = pt
+    f(w,x,y,z)
+end
+function apply_interpolate(f, pt)
+    f(pt...)
 end
