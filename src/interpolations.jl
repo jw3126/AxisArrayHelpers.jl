@@ -6,7 +6,7 @@ using StaticArrays
 using AxisArrayConversion: to
 
 export create_interpolate
-export pullback
+export pullback, pullback!
 
 struct DefaultOnOutside end
 
@@ -31,11 +31,11 @@ end
 
 function pullback(f, axes, data; kw...)
     AC.check_consistency(data)
-    arr    = AC.to(NamedTuple, data)
-    axs    = AC.name_axes(axes)
-    nt_out = _pullback_namedtuple(f, axes, data; kw...)
+    data_nt    = AC.to(NamedTuple, data)
+    axes_nt    = AC.name_axes(axes)
+    out_nt = _pullback_namedtuple(f, axes_nt, data_nt; kw...)
     T      = AC.roottype(typeof(data))
-    out    = AC.to(T, nt_out)
+    out    = AC.to(T, out_nt)
     return out
 end
 
@@ -52,12 +52,12 @@ function pullback!(f, out, data; kw...)
     AC.check_consistency(data)
     out_nt  = AC.to(NamedTuple, out)
     data_nt = AC.to(NamedTuple, data)
-    _pullback_namedtuple!(f, nt_out, data_nt; kw...)
-    T = AC.roottype(out)
+    _pullback_namedtuple!(f, out_nt, data_nt; kw...)
+    T = AC.roottype(typeof(out))
     return AC.to(T, out_nt)
 end
 
-function _pullback_namedtuple!(f, out::NamedTuple, data::NamedTuple; kw...)
+@noinline function _pullback_namedtuple!(f, out::NamedTuple, data::NamedTuple; kw...)
     itp = create_interpolate(data; kw...)
     Threads.@threads for ci in CartesianIndices(out.values)
         pt0 = SVector(map(getindex, Tuple(out.axes), Tuple(ci)))

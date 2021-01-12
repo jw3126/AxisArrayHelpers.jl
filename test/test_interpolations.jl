@@ -46,11 +46,25 @@ end
 
 @testset "pullback" begin
     data = (axes=(1:3,), values=[2,0,10])
-    pb = pullback(identity, (x=1:3,), data)
+    pb = @inferred pullback(identity, (x=1:3,), data)
     AC.check_consistency(pb)
     @test pb.axes === (x=1:3,)
     @test pb.values == data.values
 
+    data = (axes=(a=1:3,), values=[2,0,10.0])
+    out = deepcopy(data)
+    out.values .= NaN
+    pb = @inferred pullback!(identity, out, data)
+    @test pb === out
+    @test out == data
+
+    data = (axes=(a=1:3,), values=[2,0,10])
+    pb_axes = (a=(1/2)*(1:3),)
+    #pb_axes = (a=[2,2],)
+    pb = @inferred pullback(pt -> 2pt, pb_axes, data, onoutside=ITP.Flat())
+    AC.check_consistency(pb)
+    @test pb.axes === pb_axes
+    @test pb.values == data.values
 end
 
 end#module
