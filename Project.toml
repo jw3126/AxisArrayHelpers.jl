@@ -3,11 +3,18 @@ uuid = "82988b09-1d3c-48f4-9459-857f29e4fe43"
 authors = ["Jan Weidner <jw3126@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+AxisArrayConversion = "972ef8a8-2335-4604-a4a0-94f299de4a83"
+ConstructionBase = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
+Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
 [compat]
 julia = "1"
 
 [extras]
+AxisKeys = "94b1ba4f-4ee9-5380-92f1-94cde586c3c5"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Test", "AxisKeys"]
