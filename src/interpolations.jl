@@ -6,17 +6,25 @@ using StaticArrays
 export create_interpolate
 using AxisArrayConversion: to
 
-function create_interpolate(data;
-        scheme = ITP.Gridded(ITP.Linear())
-    )
+struct DefaultOnOutside end
+
+function _create_interpolate(data, scheme, onoutside::DefaultOnOutside)
     obj = AC.to(NamedTuple, data)
-    itp = ITP.interpolate(Tuple(obj.axes), obj.values, scheme)
+    axes = Tuple(obj.axes)
+    itp = ITP.interpolate(axes, obj.values, scheme)
     return itp
 end
 
-function create_interpolate(obj, onoutside; kw...)
-    itp = create_interpolate(obj; kw...)
+function _create_interpolate(data, scheme, onoutside)
+    itp = _create_interpolate(data, scheme, DefaultOnOutside())
     return ITP.extrapolate(itp, onoutside)
+end
+
+function create_interpolate(data;
+        scheme = ITP.Gridded(ITP.Linear()),
+        onoutside = DefaultOnOutside(),
+    )
+    return _create_interpolate(data, scheme, onoutside)
 end
 
 function pullback(f, axes, data; kw...)

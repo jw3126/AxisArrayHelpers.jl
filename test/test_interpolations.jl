@@ -4,6 +4,8 @@ using AxisArrayHelpers
 const AH = AxisArrayHelpers
 import AxisKeys
 const AK = AxisKeys
+import Interpolations
+const ITP = Interpolations
 
 
 @testset "create_interpolate" begin
@@ -28,6 +30,16 @@ const AK = AxisKeys
         @test_throws BoundsError itp(0.9)
     end
 
+    data = (axes=(-2:2.0, ), values=[0,1,0,0,10.0])
+    itp = @inferred create_interpolate(data, onoutside=ITP.Flat())
+    @test itp(-2) === 0.0
+    @test itp(-100) === 0.0
+    @test itp(100) === 10.0
+
+    data = (axes=(-2.0:2, ), values=[0,1,0,0,10.0])
+    itp = @inferred create_interpolate(data, scheme=ITP.Gridded(ITP.Constant()))
+    @test itp(-1.4) === 1.0
+    @test itp(1.9) === 10.0
 end
 
 end#module
