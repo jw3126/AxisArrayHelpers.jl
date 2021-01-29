@@ -1,14 +1,18 @@
 import Interpolations
 const ITP = Interpolations
 
+using ArgCheck
+using CoordinateTransformations
 using ConstructionBase: setproperties
 using StaticArrays
 using AxisArrayConversion: to
+using LinearAlgebra
 
 export create_interpolate
 export pullback, pullback!
 
 struct DefaultOnOutside end
+
 
 function _create_interpolate(data, scheme, onoutside::DefaultOnOutside)
     obj = AC.to(NamedTuple, data)
@@ -86,4 +90,80 @@ function apply_interpolate(f, pt::SVector{4})
 end
 function apply_interpolate(f, pt)
     f(pt...)
+end
+
+function pullback_axes(f, axes)
+    pullback_axes_tuple(f, Tuple(axes))
+end
+
+function pullback_axes_tuple(trans::Translation, axes::NTuple{N,Any}) where {N}
+    @argcheck length(trans.translation) == length(axes)
+    map(axes, NTuple{N}(trans.translation)) do ax, x
+        ax .- x
+    end
+end
+
+function norm0(arr; atol=0, rtol=sqrt(eps(float(eltype(arr)))))
+    m = norm(arr, Inf)
+    ret = 0
+    thresh = max(atol, rtol*m)
+    for x in arr
+        if norm(x) >= thresh
+            ret += 1
+        end
+    end
+    ret
+end
+
+function pullback_axes_tuple(am::AffineMap, axes)
+    axes = pullback_axes_tuple(Translation(am.translation), axes)
+    axes = pullback_axes_tuple(LinearMap(am.linear), axes)
+end
+
+function pullback_axes_tuple(am::LinearMap, axes)
+    sp = splitperm(am.linear)
+    isp = inv_splitperm(sp)
+    forward_axes_splitperm(isp, axes)
+end
+
+function splitperm(A::AbstractMatrix)
+    @argcheck size(A,1) == size(A,2)
+    N = size(A,1)
+    @argcheck norm0(A) == N
+    colmaxima = NTuple{N}(findmax(abs.(A), dims=(1,))[2])
+    perm = map(colmaxima) do ci
+        Tuple(ci)[1]
+    end
+
+    scalings = map(colmaxima) do ci
+        A[ci]
+    end
+    (;perm, scalings)
+end
+
+function forward_axes_splitperm(sp, axes)
+    axes = axes .* sp.scalings
+    axes = getindex.(Ref(axes), sp.perm)
+    map(axes) do ax
+        first(ax) > last(ax) ? reverse(ax) : ax
+    end
+end
+
+function matrix_from_splitperm(sp)
+    N = length(sp.perm)
+    T = eltype(sp.scalings)
+    ret = zeros(T, N,N)
+    for (i,j, s) in zip(1:N,sp.perm, sp.scalings)
+        ret[j,i] = s
+    end
+    ret
+end
+
+function inv_splitperm(sp)
+    perm = invperm(sp.perm)
+    scalings = map(sp.scalings) do s
+        1/s
+    end
+    scalings = getindex.(Ref(scalings), sp.perm)
+    (;perm, scalings)
 end
