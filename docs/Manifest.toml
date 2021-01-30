@@ -2,9 +2,14 @@
 
 [[Adapt]]
 deps = ["LinearAlgebra"]
-git-tree-sha1 = "345a14764e43fe927d6f5c250fe4c8e4664e6ee8"
+git-tree-sha1 = "4146c39f29be88c3f0cef732f86e5ab640d2e22d"
 uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
-version = "2.4.0"
+version = "3.1.1"
+
+[[ArgCheck]]
+git-tree-sha1 = "dedbbb2ddb876f899585c4ec4433265e3017215a"
+uuid = "dce04be8-c92d-5529-be00-80e4d2c0e197"
+version = "2.1.0"
 
 [[AxisAlgorithms]]
 deps = ["LinearAlgebra", "Random", "SparseArrays", "WoodburyMatrices"]
@@ -14,12 +19,12 @@ version = "1.0.0"
 
 [[AxisArrayConversion]]
 deps = ["Requires"]
-git-tree-sha1 = "26408863b67700dc814dc03a316f5e8c9b6d3551"
+git-tree-sha1 = "94688a9f485a52970ed2e3df3e87d2e04ea89876"
 uuid = "972ef8a8-2335-4604-a4a0-94f299de4a83"
-version = "0.1.1"
+version = "0.1.2"
 
 [[AxisArrayHelpers]]
-deps = ["AxisArrayConversion", "ConstructionBase", "Interpolations", "StaticArrays"]
+deps = ["ArgCheck", "AxisArrayConversion", "ConstructionBase", "CoordinateTransformations", "Interpolations", "LinearAlgebra", "StaticArrays"]
 path = ".."
 uuid = "82988b09-1d3c-48f4-9459-857f29e4fe43"
 version = "0.1.0"
@@ -31,6 +36,12 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 git-tree-sha1 = "a2a6a5fea4d6f730ec4c18a76d27ec10e8ec1c50"
 uuid = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
 version = "1.0.0"
+
+[[CoordinateTransformations]]
+deps = ["LinearAlgebra", "StaticArrays"]
+git-tree-sha1 = "6d1c23e740a586955645500bbec662476204a52c"
+uuid = "150eb455-5306-5404-9cee-2592286d6298"
+version = "0.6.1"
 
 [[Dates]]
 deps = ["Printf"]
@@ -97,9 +108,9 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OffsetArrays]]
 deps = ["Adapt"]
-git-tree-sha1 = "5b644e46f71e744fac0775b885809fd82c4ca904"
+git-tree-sha1 = "8fe8860da7427b10b996deaf1c8b9a7e96c00d05"
 uuid = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
-version = "1.5.0"
+version = "1.5.2"
 
 [[Parsers]]
 deps = ["Dates"]
