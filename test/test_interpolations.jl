@@ -110,4 +110,29 @@ end
     end
 end
 
+@testset "common_grid" begin
+    grid1 = (1:10,)
+    grid2 = (2:20,)
+    @test AH.common_grid([grid1, grid2]) == (2:10,)
+    grid1 = (1:10,-10:2:10)
+    grid2 = (2:20,-8:2:4)
+    @test AH.common_grid([grid1, grid2]) == (2:10,-8:2:4)
+end
+
+@testset "common_ground" begin
+    data1 = (axes=(a=1:10,), values=1:10)
+    data2 = (axes=(a=0:4,), values=0:10:40)
+    out1, out2 = AH.common_ground((data1, data2))
+    @test out1 == (axes = (a = [1, 2, 3, 4],), values = [1.0, 2.0, 3.0, 4.0])
+    @test out2 == (axes = (a = [1, 2, 3, 4],), values = [10.0, 20.0, 30.0, 40.0])
+end
+
+
+@testset "flip_decreasing_axes" begin
+    @test AH.flip_decreasing_axes((axes=(1:3,), values=[1,4,2])) == (axes=(1:3,), values=[1,4,2])
+    @test AH.flip_decreasing_axes((axes=([0,-2, -4],), values=[1,4,2])) == (axes=([-4, -2, 0],), values=[2,4,1])
+    nt1 = (axes=(x=[-1, -2], y=[1,2,3]), values = [1 2 3; 4 5 6])
+    nt2 = (axes = (x = [-2, -1], y = [1, 2, 3]), values = [4 5 6; 1 2 3])
+    @test AH.flip_decreasing_axes(nt1) == nt2
+end
 end#module

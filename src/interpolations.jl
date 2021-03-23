@@ -13,7 +13,6 @@ export pullback, pullback!
 
 struct DefaultOnOutside end
 
-
 function _create_interpolate(data, scheme, onoutside::DefaultOnOutside)
     obj = AC.to(NamedTuple, data)
     axes = Tuple(obj.axes)
@@ -166,4 +165,81 @@ function inv_splitperm(sp)
     end
     scalings = getindex.(Ref(scalings), sp.perm)
     (;perm, scalings)
+end
+
+################################################################################
+##### common_ground
+################################################################################
+function common_grid(grids)
+    n = length(first(grids))
+    axes_values = map(ntuple(identity, n)) do i
+        axes_i = map(grids) do grid
+            @argcheck length(grid) == n
+            grid[i]
+        end
+        return common_axis(axes_i)
+    end
+    grid1 = first(grids)
+    if grid1 isa Tuple
+        axes_values
+    else
+        NamedTuple{propertynames(grid1)}(axes_values)
+    end
+end
+
+function common_axis(axis)
+    x_lo, x_hi = common_axis_bounds(axis)
+    ret = filter(first(axis)) do x
+        x_lo < x < x_hi
+    end
+    pushfirst!(ret, x_lo)
+    push!(ret, x_hi)
+    return ret
+end
+
+function common_axis_bounds(axs) x_lo = maximum(minimum, axs)
+    x_hi = minimum(maximum, axs)
+    return x_lo, x_hi
+end
+
+"""
+    new_axis_arrays = common_ground(axis_arrays)
+
+Take a collection of axis array like objects, with possibly distinct but overlapping
+axes and shrink them such that their axes coincide.
+"""
+function common_ground(arrs)
+    nts = map(arr -> AxisArrayConversion.to(NamedTuple, arr), arrs)
+    axs = common_grid(map(nt -> nt.axes, nts))
+
+    map(arrs, nts) do orig, nt
+        nt_common = pullback(identity, axs, nt)
+        T = AxisArrayConversion.roottype(typeof(orig))
+        AxisArrayConversion.to(T, nt_common)
+    end
+end
+
+function flip_decreasing_axes(nt::NamedTuple)
+    flip_needs = map(nt.axes) do ax
+        last(ax) < first(ax)
+    end
+    if any(flip_needs)
+        axes_new = map(nt.axes, flip_needs) do ax, needs_flip
+            needs_flip ? reverse(ax) : ax
+        end
+        inds_new = map(Base.axes(nt.values), flip_needs) do inds, needs_flip
+            needs_flip ? reverse(inds) : inds
+        end
+        vals_new = nt.values[inds_new...]
+        return (axes=axes_new, values=vals_new)
+    else
+        return nt
+    end
+end
+
+function flip_decreasing_axes(arr)
+    nt = AxisArrayConversion.to(NamedTuple, arr)
+    nt_out = flip_decreasing_axes(nt)
+    T = AxisArrayConversion.roottype(typeof(arr))
+    AxisArrayConversion.to(T, nt_out)
 end
