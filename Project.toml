@@ -12,10 +12,12 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LinearInterpolations = "b20c7882-2490-4592-a606-fbbfe9e745e8"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
+
 [compat]
 ArgCheck = ">=2.1"
 AxisArrayConversion = ">=0.1"
 CoordinateTransformations = ">=0.6"
+StaticArrays = ">=1.1"
 LinearInterpolations = ">= 0.1.1"
 julia = "1"
 
