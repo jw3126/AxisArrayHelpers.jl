@@ -57,26 +57,30 @@ end
     return out
 end
 
-function apply_interpolate(f, pt::SVector{1})
-    # needed for inference
-    x, = pt
-    f(x)
+function apply_interpolate(f::LI.Interpolate, pt)
+    f(pt)
 end
-function apply_interpolate(f, pt::SVector{2})
-    x,y = pt
-    f(x,y)
-end
-function apply_interpolate(f, pt::SVector{3})
-    x,y,z = pt
-    f(x,y,z)
-end
-function apply_interpolate(f, pt::SVector{4})
-    w,x,y,z = pt
-    f(w,x,y,z)
-end
-function apply_interpolate(f, pt)
-    f(pt...)
-end
+
+# function apply_interpolate(f, pt::SVector{1})
+#     # needed for inference
+#     x, = pt
+#     f(x)
+# end
+# function apply_interpolate(f, pt::SVector{2})
+#     x,y = pt
+#     f(x,y)
+# end
+# function apply_interpolate(f, pt::SVector{3})
+#     x,y,z = pt
+#     f(x,y,z)
+# end
+# function apply_interpolate(f, pt::SVector{4})
+#     w,x,y,z = pt
+#     f(w,x,y,z)
+# end
+# function apply_interpolate(f, pt)
+#     f(pt...)
+# end
 
 function pullback_axes(f, axes)
     pullback_axes_tuple(f, Tuple(axes))
