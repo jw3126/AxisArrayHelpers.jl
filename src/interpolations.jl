@@ -1,5 +1,4 @@
-import Interpolations
-const ITP = Interpolations
+import LinearInterpolations as LI
 
 using ArgCheck
 using CoordinateTransformations
@@ -13,23 +12,11 @@ export pullback, pullback!
 
 struct DefaultOnOutside end
 
-function _create_interpolate(data, scheme, onoutside::DefaultOnOutside)
+function create_interpolate(data; kw...)
     obj = AC.to(NamedTuple, data)
     axes = Tuple(obj.axes)
-    itp = ITP.interpolate(axes, obj.values, scheme)
+    itp = LI.Interpolate(axes, obj.values; kw...)
     return itp
-end
-
-function _create_interpolate(data, scheme, onoutside)
-    itp = _create_interpolate(data, scheme, DefaultOnOutside())
-    return ITP.extrapolate(itp, onoutside)
-end
-
-function create_interpolate(data;
-        scheme = ITP.Gridded(ITP.Linear()),
-        onoutside = DefaultOnOutside(),
-    )
-    return _create_interpolate(data, scheme, onoutside)
 end
 
 function pullback(f, axes, data; kw...)

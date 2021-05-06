@@ -4,8 +4,6 @@ using AxisArrayHelpers
 const AH = AxisArrayHelpers
 import AxisKeys
 const AK = AxisKeys
-import Interpolations
-const ITP = Interpolations
 using AxisArrayConversion
 const AC = AxisArrayConversion
 using CoordinateTransformations
@@ -17,7 +15,7 @@ using CoordinateTransformations
     @test itp(1  ) ≈ 10
     @test itp(1.2) ≈ 10.2
     @test itp(2.2) ≈ 11.4
-    @test_throws BoundsError itp(0.9)
+    @test_throws ArgumentError itp(0.9)
 
     datas = [
         AH.to(AK.KeyedArray, data),
@@ -30,19 +28,14 @@ using CoordinateTransformations
         @test itp(1  ) ≈ 10
         @test itp(1.2) ≈ 10.2
         @test itp(2.2) ≈ 11.4
-        @test_throws BoundsError itp(0.9)
+        @test_throws ArgumentError itp(0.9)
     end
 
     data = (axes=(-2:2.0, ), values=[0,1,0,0,10.0])
-    itp = @inferred create_interpolate(data, onoutside=ITP.Flat())
+    itp = @inferred create_interpolate(data, extrapolate=:replicate)
     @test itp(-2) === 0.0
     @test itp(-100) === 0.0
     @test itp(100) === 10.0
-
-    data = (axes=(-2.0:2, ), values=[0,1,0,0,10.0])
-    itp = @inferred create_interpolate(data, scheme=ITP.Gridded(ITP.Constant()))
-    @test itp(-1.4) === 1.0
-    @test itp(1.9) === 10.0
 end
 
 @testset "pullback" begin
@@ -62,7 +55,7 @@ end
     data = (axes=(a=1:3,), values=[2,0,10])
     pb_axes = (a=(1/2)*(1:3),)
     #pb_axes = (a=[2,2],)
-    pb = @inferred pullback(pt -> 2pt, pb_axes, data, onoutside=ITP.Flat())
+    pb = @inferred pullback(pt -> 2pt, pb_axes, data, extrapolate=:replicate)
     AC.check_consistency(pb)
     @test pb.axes === pb_axes
     @test pb.values == data.values
