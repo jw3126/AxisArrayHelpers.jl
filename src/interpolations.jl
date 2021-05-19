@@ -49,10 +49,12 @@ end
 
 @noinline function _pullback_namedtuple!(f, out::NamedTuple, data::NamedTuple; kw...)
     itp = create_interpolate(data; kw...)
-    Threads.@threads for ci in CartesianIndices(out.values)
-        pt0 = SVector(map(getindex, Tuple(out.axes), Tuple(ci)))
-        pt = f(pt0)
-        out.values[ci] = apply_interpolate(itp, pt)
+    let out=out, f=f, itp=itp
+        Threads.@threads for ci in CartesianIndices(out.values)
+            pt0 = SVector(map(getindex, Tuple(out.axes), Tuple(ci)))
+            pt = f(pt0)
+            out.values[ci] = apply_interpolate(itp, pt)
+        end
     end
     return out
 end
@@ -178,9 +180,9 @@ function common_grid(grids)
     end
 end
 
-function common_axis(axis)
-    x_lo, x_hi = common_axis_bounds(axis)
-    ret = filter(first(axis)) do x
+function common_axis(axes)
+    x_lo, x_hi = common_axis_bounds(axes)
+    ret = filter(first(axes)) do x
         x_lo < x < x_hi
     end
     pushfirst!(ret, x_lo)
@@ -188,7 +190,8 @@ function common_axis(axis)
     return ret
 end
 
-function common_axis_bounds(axs) x_lo = maximum(minimum, axs)
+function common_axis_bounds(axs)
+    x_lo = maximum(minimum, axs)
     x_hi = minimum(maximum, axs)
     return x_lo, x_hi
 end
