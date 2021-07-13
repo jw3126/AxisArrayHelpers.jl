@@ -10,7 +10,12 @@ using LinearAlgebra
 export create_interpolate
 export pullback, pullback!
 
-struct DefaultOnOutside end
+"""
+    struct TextureEx end
+
+Executes the computation using multiple CPU threads.
+"""
+struct ThreadsEx end
 
 function create_interpolate(data; kw...)
     obj = AC.to(NamedTuple, data)
@@ -19,35 +24,35 @@ function create_interpolate(data; kw...)
     return itp
 end
 
-function pullback(f, axes, data; kw...)
+function pullback(f, axes, data; executor=ThreadsEx(), kw...)
     AC.check_consistency(data)
     data_nt    = AC.to(NamedTuple, data)
     axes_nt    = AC.name_axes(axes)
-    out_nt = _pullback_namedtuple(f, axes_nt, data_nt; kw...)
+    out_nt = _pullback_namedtuple(f, axes_nt, data_nt, executor; kw...)
     T      = AC.roottype(typeof(data))
     out    = AC.to(T, out_nt)
     return out
 end
-
-function _pullback_namedtuple(f, axes::NamedTuple, data::NamedTuple; kw...)
-    dims = map(length, Tuple(axes))
-    T = float(eltype(data.values))
-    vals = similar(data.values, T, dims)
-    out  = (axes=axes, values=vals)
-    return _pullback_namedtuple!(f, out, data; kw...)
-end
-
-function pullback!(f, out, data; kw...)
+function pullback!(f, out, data; executor=ThreadsEx(), kw...)
     AC.check_consistency(out)
     AC.check_consistency(data)
     out_nt  = AC.to(NamedTuple, out)
     data_nt = AC.to(NamedTuple, data)
-    _pullback_namedtuple!(f, out_nt, data_nt; kw...)
+    _pullback_namedtuple!(f, out_nt, data_nt, executor; kw...)
     T = AC.roottype(typeof(out))
     return AC.to(T, out_nt)
 end
 
-@noinline function _pullback_namedtuple!(f, out::NamedTuple, data::NamedTuple; kw...)
+function _pullback_namedtuple(f, axes::NamedTuple, data::NamedTuple, ex::ThreadsEx; kw...)
+    dims = map(length, Tuple(axes))
+    T = float(eltype(data.values))
+    vals = similar(data.values, T, dims)
+    out  = (axes=axes, values=vals)
+    return _pullback_namedtuple!(f, out, data, ex; kw...)
+end
+
+@noinline function _pullback_namedtuple!(f, out::NamedTuple, data::NamedTuple, ex::ThreadsEx;
+                                         kw...)
     itp = create_interpolate(data; kw...)
     let out=out, f=f, itp=itp
         Threads.@threads for ci in CartesianIndices(out.values)

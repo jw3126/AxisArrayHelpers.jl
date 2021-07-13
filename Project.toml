@@ -4,12 +4,14 @@ authors = ["Jan Weidner <jw3126@gmail.com> and contributors"]
 version = "0.2.1"
 
 [deps]
+Adapt = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
 AxisArrayConversion = "972ef8a8-2335-4604-a4a0-94f299de4a83"
 ConstructionBase = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LinearInterpolations = "b20c7882-2490-4592-a606-fbbfe9e745e8"
+Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
@@ -24,6 +26,7 @@ julia = "1"
 [extras]
 AxisKeys = "94b1ba4f-4ee9-5380-92f1-94cde586c3c5"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 
 [targets]
-test = ["Test", "AxisKeys"]
+test = ["Test", "AxisKeys","CUDA"]
