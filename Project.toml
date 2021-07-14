@@ -20,13 +20,14 @@ AxisArrayConversion = ">=0.1"
 ConstructionBase = "1"
 CoordinateTransformations = ">=0.6"
 LinearInterpolations = ">= 0.1.1"
+Requires = "1"
 StaticArrays = ">=1.1"
 julia = "1.6"
 
 [extras]
 AxisKeys = "94b1ba4f-4ee9-5380-92f1-94cde586c3c5"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "AxisKeys","CUDA"]
+test = ["Test", "AxisKeys", "CUDA"]
