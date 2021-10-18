@@ -11,7 +11,7 @@ export create_interpolate
 export pullback, pullback!
 
 """
-    struct TextureEx end
+    struct ThreadsEx end
 
 Executes the computation using multiple CPU threads.
 """
@@ -58,36 +58,11 @@ end
         Threads.@threads for ci in CartesianIndices(out.values)
             pt0 = SVector(map(getindex, Tuple(out.axes), Tuple(ci)))
             pt = f(pt0)
-            out.values[ci] = apply_interpolate(itp, pt)
+            out.values[ci] = itp(pt)
         end
     end
     return out
 end
-
-function apply_interpolate(f::LI.Interpolate, pt)
-    f(pt)
-end
-
-# function apply_interpolate(f, pt::SVector{1})
-#     # needed for inference
-#     x, = pt
-#     f(x)
-# end
-# function apply_interpolate(f, pt::SVector{2})
-#     x,y = pt
-#     f(x,y)
-# end
-# function apply_interpolate(f, pt::SVector{3})
-#     x,y,z = pt
-#     f(x,y,z)
-# end
-# function apply_interpolate(f, pt::SVector{4})
-#     w,x,y,z = pt
-#     f(w,x,y,z)
-# end
-# function apply_interpolate(f, pt)
-#     f(pt...)
-# end
 
 function pullback_axes(f, axes)
     pullback_axes_tuple(f, Tuple(axes))

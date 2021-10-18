@@ -1,7 +1,7 @@
 name = "AxisArrayHelpers"
 uuid = "82988b09-1d3c-48f4-9459-857f29e4fe43"
 authors = ["Jan Weidner <jw3126@gmail.com> and contributors"]
-version = "0.2.2"
+version = "0.2.3"
 
 [deps]
 Adapt = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"

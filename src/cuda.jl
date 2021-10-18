@@ -1,4 +1,4 @@
-import CUDA
+import .CUDA
 import Adapt
 """
     struct TextureEx end
