@@ -7,6 +7,7 @@ const AK = AxisKeys
 using AxisArrayConversion
 const AC = AxisArrayConversion
 using CoordinateTransformations
+using StaticArrays
 
 
 @testset "create_interpolate" begin
@@ -128,4 +129,25 @@ end
     nt2 = (axes = (x = [-2, -1], y = [1, 2, 3]), values = [4 5 6; 1 2 3])
     @test AH.flip_decreasing_axes(nt1) == nt2
 end
+
+@testset "restrict_to_coordplane" begin
+    using AxisArrayHelpers: CoordPlaneInclusion, plane_axes
+    @test @inferred(plane_axes(CoordPlaneInclusion((:,2)), (1:1,1:2))) === (1:1,)
+    @test @inferred(plane_axes(CoordPlaneInclusion((:,2,:)), (1:1,1:2,1:3))) === (1:1,1:3)
+    @test @inferred(CoordPlaneInclusion((:,:,3))(@SVector[1,2])) === @SVector[1,2,3]
+    @test @inferred(CoordPlaneInclusion((:,:,:))(@SVector[1,2,3])) === @SVector[1,2,3]
+    @test @inferred(CoordPlaneInclusion((10,:,:,40))(@SVector[2,3])) === @SVector[10,2,3,40]
+    f = CoordPlaneInclusion((:,0,:))
+    @test f(@SVector[10,20]) === @SVector[10,0,20]
+
+    nt = (axes=(1:2, 10:10:20), values=[1 2; 3 4])
+    @test AH.restrict_to_coordplane(nt, 1  , :) == (axes=(10:10:20,), values=[1.0, 2.0])
+    @test AH.restrict_to_coordplane(nt, 1.5, :) == (axes=(10:10:20,), values=[2.0, 3.0])
+    @test AH.restrict_to_coordplane(nt, 2  , :) == (axes=(10:10:20,), values=[3.0, 4.0])
+
+    @test AH.restrict_to_coordplane(nt, :, 10) == (axes=(1:2,), values=[1.0, 3.0])
+    @test AH.restrict_to_coordplane(nt, :, 15) == (axes=(1:2,), values=[1.5, 3.5])
+    @test AH.restrict_to_coordplane(nt, :, 20) == (axes=(1:2,), values=[2.0, 4.0])
+end
+
 end#module

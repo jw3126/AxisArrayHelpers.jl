@@ -217,3 +217,73 @@ function flip_decreasing_axes(arr)
     T = AxisArrayConversion.roottype(typeof(arr))
     AxisArrayConversion.to(T, nt_out)
 end
+
+################################################################################
+##### restrict to coordplane
+################################################################################
+
+struct CoordPlaneInclusion{Data <: Tuple}
+    plane::Data
+end
+
+function (o::CoordPlaneInclusion)(pt::AbstractVector)
+    qt = Tuple(pt)
+    SVector(_inclusion(o.plane, qt))
+end
+
+function _inclusion_lispy(out, plane1::typeof(:), x1, plane_rest, pt_rest::Tuple{})
+    (out..., x1, plane_rest...)
+end
+function _inclusion_lispy(out, plane1::typeof(:), x1, plane_rest, pt_rest)
+    out_new = (out..., x1)
+    _inclusion_lispy(out_new, first(plane_rest), first(pt_rest), Base.tail(plane_rest), Base.tail(pt_rest))
+end
+function _inclusion_lispy(out, plane1, x1, plane_rest, pt_rest)
+    out_new = (out..., plane1...)
+    _inclusion_lispy(out_new, first(plane_rest), x1, Base.tail(plane_rest), pt_rest)
+end
+
+_inclusion(plane, pt::Tuple{}) = plane
+function _inclusion(plane::Tuple, pt::Tuple)
+    out = ()
+    _inclusion_lispy(out, first(plane), first(pt), Base.tail(plane), Base.tail(pt))
+end
+function plane_axes(o::CoordPlaneInclusion, axes::Tuple)
+    @argcheck length(o.plane) == length(axes)
+    error("unreachable")
+end
+function plane_axes(o::CoordPlaneInclusion, axes)
+    plane_axes(o, Tuple(axes))
+end
+function plane_axes(o::CoordPlaneInclusion{<:NTuple{N,Any}}, axes::NTuple{N,Any}) where {N}
+    plane_axes_lispy((), first(o.plane), first(axes), Base.tail(o.plane), Base.tail(axes))
+end
+function plane_axes_lispy(out, p1::typeof(:), ax1, plane, axes)
+    out_new = (out..., ax1)
+    plane_axes_lispy(out_new, first(plane), first(axes), Base.tail(plane), Base.tail(axes))
+end
+function plane_axes_lispy(out, p1, ax1, plane, axes)
+    plane_axes_lispy(out, first(plane), first(axes), Base.tail(plane), Base.tail(axes))
+end
+function plane_axes_lispy(out, p1::typeof(:), ax1, plane::Tuple{}, axes::Tuple{})
+    (out..., ax1)
+end
+function plane_axes_lispy(out, p1, ax1, plane::Tuple{}, axes::Tuple{})
+    out
+end
+
+"""
+
+    restrict_to_coordplane(nt::NamedTuple, plane...)
+
+Examples:
+
+    restrict_to_coordplane(nt3d, :, 2, :) # restrict to y = 2 plane
+    restrict_to_coordplane(nt2d, 42, :) # restrict to x = 42 line
+"""
+function restrict_to_coordplane(nt::NamedTuple, plane...; kw...)
+    f = CoordPlaneInclusion(plane)
+    axs = plane_axes(f, nt.axes)
+    pb = pullback(f, axs, nt; kw...)
+    (axes=Tuple(pb.axes), values=pb.values)
+end
